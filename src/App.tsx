@@ -1,12 +1,13 @@
+import React,{useEffect}from "react";
 import './styles/App.css';
-import twitterLogo from './assets/twitter-logo.svg';
-import React from "react";
+// const twitterLogo = require('./assets/twitter-logo.svg');
+import twitterLogo from "./assets/twitter-logo.svg";
 
 // Constants
-const TWITTER_HANDLE = '_buildspace';
-const TWITTER_LINK = `https://twitter.com/${TWITTER_HANDLE}`;
-const OPENSEA_LINK = '';
-const TOTAL_MINT_COUNT = 50;
+const TWITTER_HANDLE:String = '_buildspace';
+const TWITTER_LINK:string = `https://twitter.com/${TWITTER_HANDLE}`;
+const OPENSEA_LINK:String = '';
+const TOTAL_MINT_COUNT:Number = 50;
 
 const App = () => {
   // Render Methods
@@ -15,7 +16,9 @@ const App = () => {
       Connect to Wallet
     </button>
   );
-
+  useEffect(()=>{
+    console.log(twitterLogo);
+  },[])
   return (
     <div className="App">
       <div className="container">
