@@ -24,7 +24,7 @@ const App = () => {
      }else{
       console.log("We have the ethereum object", ethereum);
      }
-
+     await checkETHChainId(ethereum);
      const accounts = await ethereum.request?.({method: 'eth_accounts'});
     //  console.log('accounts',accounts);
      if (accounts.length !== 0) {
@@ -48,6 +48,7 @@ const App = () => {
      /*
       * Fancy method to request access to account.
       */
+     await checkETHChainId(ethereum);
      const accounts = await ethereum.request?.({ method: "eth_requestAccounts" });
       /*
       * Boom! This should print out public address once we authorize Metamask.
@@ -67,6 +68,16 @@ const App = () => {
       Connect to Wallet
     </button>
   );
+  const checkETHChainId = async (ethereum?: ExternalProvider) => {
+    let chainId = await ethereum?.request?.({ method: 'eth_chainId' });
+    console.log("Connected to chain " + chainId);
+    // String, hex code of the chainId of the Rinkebey test network
+    const rinkebyChainId = "0x4";
+    if (chainId !== rinkebyChainId) {
+      alert("You are not connected to the Rinkeby Test Network!");
+      return;
+    }
+  }
   //setup listener
   const setupEventListener = async () => {
     try{
