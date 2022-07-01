@@ -24,7 +24,10 @@ const App = () => {
      }else{
       console.log("We have the ethereum object", ethereum);
      }
-     await checkETHChainId(ethereum);
+     const checkETHId = await checkETHChainId(ethereum);
+      if(!checkETHId){
+        return
+      }
      const accounts = await ethereum.request?.({method: 'eth_accounts'});
     //  console.log('accounts',accounts);
      if (accounts.length !== 0) {
@@ -48,7 +51,10 @@ const App = () => {
      /*
       * Fancy method to request access to account.
       */
-     await checkETHChainId(ethereum);
+     const checkETHId = await checkETHChainId(ethereum);
+     if(!checkETHId){
+        return
+      }
      const accounts = await ethereum.request?.({ method: "eth_requestAccounts" });
       /*
       * Boom! This should print out public address once we authorize Metamask.
@@ -75,7 +81,9 @@ const App = () => {
     const rinkebyChainId = "0x4";
     if (chainId !== rinkebyChainId) {
       alert("You are not connected to the Rinkeby Test Network!");
-      return;
+      return false;
+    }else{
+      return true;
     }
   }
   //setup listener
@@ -108,6 +116,10 @@ const App = () => {
      try{
           const { ethereum } = window;
           if(ethereum){
+            const checkETHId = await checkETHChainId(ethereum);
+            if(!checkETHId){
+              return
+            }
             const provider = new ethers.providers.Web3Provider(ethereum);
             const signer = provider.getSigner();
             const connectedContract = new ethers.Contract(CONTRACT_ADDRESS, myEpicNft.abi, signer);
@@ -117,7 +129,6 @@ const App = () => {
             console.log("Mining...please wait.")
             await nftTxn.wait();
             console.log(`Mined, see transaction: https://rinkeby.etherscan.io/tx/${nftTxn.hash}`);
-            // console.log();
 
         } else {
           console.log("Ethereum object doesn't exist!");
