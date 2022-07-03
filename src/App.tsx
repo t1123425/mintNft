@@ -12,15 +12,13 @@ const TWITTER_HANDLE:string = '_buildspace';
 const TWITTER_LINK:string = `https://twitter.com/${TWITTER_HANDLE}`;
 const CONTRACT_ADDRESS:string = process.env.REACT_APP_NFT_CONTRACT?process.env.REACT_APP_NFT_CONTRACT:'';
 type NFTInfo = {
-  link:string,
-  id:number
+  link:string
 }
 const App = () => {
   const [currentAccount, setCurrentAccount] = useState("");
-  const [popStatus,setpopStatus] = useState(true);
+  const [popStatus,setpopStatus] = useState(false);
   const [NFTData,setNFTData] = useState<NFTInfo>({
-    link:'',
-    id:0
+    link:''
   })
   const [mintStatus,setMintStatus] = useState("init");
   const [totalMintCount,setTotalMintCount] = useState(0);
@@ -51,6 +49,13 @@ const App = () => {
       console.log("No authorized account found");
     }
   }
+  // const getTotalMintData = async () => {
+  //   try{
+    
+  //   }catch(e){
+  //     console.error(e);
+  //   }
+  // }
   const connectWallet = async () =>  {
     try{
      const { ethereum } =  window;
@@ -100,6 +105,9 @@ const App = () => {
         const provider = new ethers.providers.Web3Provider(ethereum);
         const signer = provider.getSigner();
         const connectedContract = new ethers.Contract(CONTRACT_ADDRESS, myEpicNft.abi, signer);
+        // if(mintStatus === 'init'){
+        //   await connectedContract.getNFTInfo();
+        // }
         // THIS IS THE MAGIC SAUCE.
         // This will essentially "capture" our event when our contract throws it.
         // If you're familiar with webhooks, it's very similar to that!
@@ -110,8 +118,7 @@ const App = () => {
         connectedContract.on("NewEpicNFTMinted", (from, tokenId) => {
           //console.log(from, tokenId.toNumber())
           setNFTData({
-            link:`https://rinkeby.rarible.com/token/${CONTRACT_ADDRESS}:${tokenId.toNumber()}`,
-            id:tokenId.toNumber()
+            link:`https://rinkeby.rarible.com/token/${CONTRACT_ADDRESS}:${tokenId.toNumber()}`
           })
           toggleWInfoModal(true);
           //alert(`Hey there! We've minted your NFT and sent it to your wallet. It may be blank right now. It can take a max of 10 min to show up on OpenSea. Here's the link: https://testnets.opensea.io/assets/${CONTRACT_ADDRESS}/${tokenId.toNumber()}`)
@@ -195,7 +202,7 @@ const App = () => {
   return (
     <div className="App">
        {
-          <InfoBlock link={NFTData.link} nftId={NFTData.id} open={popStatus} toggleFunction={toggleWInfoModal} />
+          <InfoBlock link={NFTData.link}  open={popStatus} toggleFunction={toggleWInfoModal} />
         }
       <div className="container">
         <div className="header-container">
@@ -205,6 +212,7 @@ const App = () => {
           </p>
           <div className="previewBlock">
               <img src={previewImage} alt="preview" />
+              <a href="https://testnets.opensea.io/collection/squarenft-cpbtafc8op" className="cta-button opensea-button link-btn" target="_blank" rel="noreferrer">🌊 View Collection on OpenSea</a>
           </div>
           {
             currentAccount === ''?(

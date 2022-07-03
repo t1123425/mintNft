@@ -2,7 +2,6 @@ import React from "react";
 import heyMyname from '../../assets/eminem-hey.gif';
 interface infoData{
     link?:string,
-    nftId?:number,
     open:boolean,
     toggleFunction:(status:boolean) => void
 }
