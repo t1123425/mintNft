@@ -3,6 +3,7 @@ import { ethers } from "ethers";
 import myEpicNft from "./utils/MyEpicNFT.json";
 import twitterLogo from "./assets/twitter-logo.svg";
 import loadingImg  from './assets/loading.gif';
+import previewImage from './assets/spiderman-gwen.gif'
 import { ExternalProvider } from "@ethersproject/providers";
 import InfoBlock from './components/InfoBlock'
 declare global { interface Window { ethereum?: ExternalProvider; } }
@@ -16,7 +17,7 @@ type NFTInfo = {
 }
 const App = () => {
   const [currentAccount, setCurrentAccount] = useState("");
-  const [popStatus,setpopStatus] = useState(false);
+  const [popStatus,setpopStatus] = useState(true);
   const [NFTData,setNFTData] = useState<NFTInfo>({
     link:'',
     id:0
@@ -171,9 +172,14 @@ const App = () => {
                <img src={loadingImg} alt="loading"/>
                <p>Minting... Please wait a mins</p>
              </div>
-             :<button onClick={askContractToMintNft} className="cta-button connect-wallet-button">
-            Mint NFT
-          </button>
+             :
+             <>
+              <p className="infoText">Click the below "Mint NFT" button get your hero name.</p>
+              <button onClick={askContractToMintNft} className="cta-button connect-wallet-button">
+                Mint NFT
+              </button>
+             </>
+          
           }
           {
             mintStatus === 'minted' && <h2>
@@ -193,10 +199,13 @@ const App = () => {
         }
       <div className="container">
         <div className="header-container">
-          <p className="header gradient-text">My NFT Collection</p>
+          <p className="header gradient-text">Hero Names NFT Collection</p>
           <p className="sub-text">
-            Each unique. Each beautiful. Discover your NFT today.
+            Each unique. Each beautiful. This is time to get your HERO NAME NFT today.
           </p>
+          <div className="previewBlock">
+              <img src={previewImage} alt="preview" />
+          </div>
           {
             currentAccount === ''?(
               renderNotConnectedContainer()
