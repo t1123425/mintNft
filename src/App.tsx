@@ -1,20 +1,29 @@
 import React,{useEffect,useState}from "react";
 import { ethers } from "ethers";
 import myEpicNft from "./utils/MyEpicNFT.json";
-import './styles/App.css';
-// const twitterLogo = require('./assets/twitter-logo.svg');
 import twitterLogo from "./assets/twitter-logo.svg";
+import loadingImg  from './assets/loading.gif';
 import { ExternalProvider } from "@ethersproject/providers";
+import InfoBlock from './components/InfoBlock'
 declare global { interface Window { ethereum?: ExternalProvider; } }
 // Constants
 const TWITTER_HANDLE:string = '_buildspace';
 const TWITTER_LINK:string = `https://twitter.com/${TWITTER_HANDLE}`;
 const CONTRACT_ADDRESS:string = process.env.REACT_APP_NFT_CONTRACT?process.env.REACT_APP_NFT_CONTRACT:'';
-const OPENSEA_LINK:string = '';
-const TOTAL_MINT_COUNT:Number = 50;
-
+type NFTInfo = {
+  link:string,
+  id:number
+}
 const App = () => {
   const [currentAccount, setCurrentAccount] = useState("");
+  const [popStatus,setpopStatus] = useState(false);
+  const [NFTData,setNFTData] = useState<NFTInfo>({
+    link:'',
+    id:0
+  })
+  const [mintStatus,setMintStatus] = useState("init");
+  const [totalMintCount,setTotalMintCount] = useState(0);
+  const [leftMintTime,setLeftMintTime] = useState(0);
 
   const checkIfWalletConnected = async () => {
      const { ethereum } =  window;
@@ -68,15 +77,10 @@ const App = () => {
       console.log(error);
     }
   }
-  // Render Methods
-  const renderNotConnectedContainer = () => (
-    <button onClick={connectWallet} className="cta-button connect-wallet-button">
-      Connect to Wallet
-    </button>
-  );
+
   const checkETHChainId = async (ethereum?: ExternalProvider) => {
     let chainId = await ethereum?.request?.({ method: 'eth_chainId' });
-    console.log("Connected to chain " + chainId);
+    //console.log("Connected to chain " + chainId);
     // String, hex code of the chainId of the Rinkebey test network
     const rinkebyChainId = "0x4";
     if (chainId !== rinkebyChainId) {
@@ -98,9 +102,18 @@ const App = () => {
         // THIS IS THE MAGIC SAUCE.
         // This will essentially "capture" our event when our contract throws it.
         // If you're familiar with webhooks, it's very similar to that!
+        connectedContract.on("GetTotalNFTMint",(totalNFT,mintTime)=>{
+          setTotalMintCount(totalNFT.toNumber());
+          setLeftMintTime(mintTime.toNumber());
+        })
         connectedContract.on("NewEpicNFTMinted", (from, tokenId) => {
-          console.log(from, tokenId.toNumber())
-          alert(`Hey there! We've minted your NFT and sent it to your wallet. It may be blank right now. It can take a max of 10 min to show up on OpenSea. Here's the link: https://testnets.opensea.io/assets/${CONTRACT_ADDRESS}/${tokenId.toNumber()}`)
+          //console.log(from, tokenId.toNumber())
+          setNFTData({
+            link:`https://rinkeby.rarible.com/token/${CONTRACT_ADDRESS}:${tokenId.toNumber()}`,
+            id:tokenId.toNumber()
+          })
+          toggleWInfoModal(true);
+          //alert(`Hey there! We've minted your NFT and sent it to your wallet. It may be blank right now. It can take a max of 10 min to show up on OpenSea. Here's the link: https://testnets.opensea.io/assets/${CONTRACT_ADDRESS}/${tokenId.toNumber()}`)
         });
         console.log("Setup event listener!")
       }else{
@@ -125,36 +138,70 @@ const App = () => {
             const connectedContract = new ethers.Contract(CONTRACT_ADDRESS, myEpicNft.abi, signer);
             console.log("Going to pop wallet now to pay gas...")
             let nftTxn = await connectedContract.makeAnEpicNFT();
-
+            setMintStatus('minting');
             console.log("Mining...please wait.")
             await nftTxn.wait();
+            setMintStatus('minted');
             console.log(`Mined, see transaction: https://rinkeby.etherscan.io/tx/${nftTxn.hash}`);
 
         } else {
           console.log("Ethereum object doesn't exist!");
         }
      }catch(error){
-       console.log(error)
+      console.error('ContractError',error);
      }
+  }
+  //toggleWInfoModal
+  const toggleWInfoModal = (status:boolean) =>  {
+    setpopStatus(status);
+  }
+  // Render Methods
+  const renderNotConnectedContainer = () => (
+    <button onClick={connectWallet} className="cta-button connect-wallet-button">
+      Connect to Wallet
+    </button>
+  );
+  const renderConnectedContainer = () => {
+    return (
+      <div className="nftInfoBlock">
+          
+          {
+            mintStatus === 'minting'?
+             <div className="loadingBlock">
+               <img src={loadingImg} alt="loading"/>
+               <p>Minting... Please wait a mins</p>
+             </div>
+             :<button onClick={askContractToMintNft} className="cta-button connect-wallet-button">
+            Mint NFT
+          </button>
+          }
+          {
+            mintStatus === 'minted' && <h2>
+            {leftMintTime} / {totalMintCount}  NFTs minted so far
+          </h2>
+          }
+      </div>
+    )
   }
   useEffect(()=>{
     checkIfWalletConnected();
   },[])
   return (
     <div className="App">
+       {
+          <InfoBlock link={NFTData.link} nftId={NFTData.id} open={popStatus} toggleFunction={toggleWInfoModal} />
+        }
       <div className="container">
         <div className="header-container">
           <p className="header gradient-text">My NFT Collection</p>
           <p className="sub-text">
             Each unique. Each beautiful. Discover your NFT today.
           </p>
-          {currentAccount === ''?(
-            renderNotConnectedContainer()
-          ):(
-            <button onClick={askContractToMintNft} className="cta-button connect-wallet-button">
-              Mint NFT
-            </button>
-          )}
+          {
+            currentAccount === ''?(
+              renderNotConnectedContainer()
+            ):renderConnectedContainer()
+          }
         </div>
         <div className="footer-container">
           <img alt="Twitter Logo" className="twitter-logo" src={twitterLogo} />
