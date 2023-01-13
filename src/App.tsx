@@ -49,13 +49,6 @@ const App = () => {
       console.log("No authorized account found");
     }
   }
-  // const getTotalMintData = async () => {
-  //   try{
-    
-  //   }catch(e){
-  //     console.error(e);
-  //   }
-  // }
   const connectWallet = async () =>  {
     try{
      const { ethereum } =  window;
