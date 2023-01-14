@@ -14,8 +14,8 @@ const CONTRACT_ADDRESS:string = process.env.REACT_APP_NFT_CONTRACT?process.env.R
 type NFTInfo = {
   link:string
 }
-const App = () => {
-  const [currentAccount, setCurrentAccount] = useState("");
+const App:React.FC = () => {
+  const [currentAccount, setCurrentAccount] = useState('');
   const [popStatus,setpopStatus] = useState(false);
   const [NFTData,setNFTData] = useState<NFTInfo>({
     link:''
@@ -29,22 +29,12 @@ const App = () => {
      if(!ethereum){
       console.log("Make sure you have metamask!");
       return;
-     }else{
-      console.log("We have the ethereum object", ethereum);
      }
-     const checkETHId = await checkETHChainId(ethereum);
-      if(!checkETHId){
-        return
-      }
      const accounts = await ethereum.request?.({method: 'eth_accounts'});
-    //  console.log('accounts',accounts);
      if (accounts.length !== 0) {
       const account:string = accounts[0];
-      console.log("Found an authorized account:", account);
+      console.log("Found an authorized account :", account);
       setCurrentAccount(account);
-      // Setup listener! This is for the case where a user comes to our site
-      // and ALREADY had their wallet connected + authorized.
-      setupEventListener();
     } else {
       console.log("No authorized account found");
     }
@@ -59,19 +49,16 @@ const App = () => {
      /*
       * Fancy method to request access to account.
       */
-     const checkETHId = await checkETHChainId(ethereum);
-     if(!checkETHId){
-        return
-      }
+    //  const checkETHId = await checkETHChainId(ethereum);
+    //  if(!checkETHId){
+    //     return
+    //   }
      const accounts = await ethereum.request?.({ method: "eth_requestAccounts" });
       /*
       * Boom! This should print out public address once we authorize Metamask.
       */
-      console.log("Connected", accounts[0]);
+      // console.log("Connected", accounts[0]);
       setCurrentAccount(accounts[0]);
-      // Setup listener! This is for the case where a user comes to our site
-      // and connected their wallet for the first time.
-      setupEventListener();  
     }catch(error){
       console.log(error);
     }
@@ -81,16 +68,16 @@ const App = () => {
     let chainId = await ethereum?.request?.({ method: 'eth_chainId' });
     //console.log("Connected to chain " + chainId);
     // String, hex code of the chainId of the Rinkebey test network
-    const rinkebyChainId = "0x4";
-    if (chainId !== rinkebyChainId) {
-      alert("You are not connected to the Rinkeby Test Network!");
+    const goerliChainId = "0x5";
+    if (chainId !== goerliChainId) {
+      console.log("You are not connected to the goerli Test Network! Please change to goerli");
       return false;
     }else{
       return true;
     }
   }
   //setup listener
-  const setupEventListener = async () => {
+  const setupEventListener = async (isRemove:boolean = false) => {
     try{
       const {ethereum} = window;
       if(ethereum){
@@ -110,11 +97,8 @@ const App = () => {
         })
         connectedContract.on("NewEpicNFTMinted", (from, tokenId) => {
           //console.log(from, tokenId.toNumber())
-          setNFTData({
-            link:`https://rinkeby.rarible.com/token/${CONTRACT_ADDRESS}:${tokenId.toNumber()}`
-          })
+          setNFTData((old)=> {return {...old,link:`https://testnets.opensea.io/assets/goerli/${CONTRACT_ADDRESS}:${tokenId.toNumber()}`}})
           toggleWInfoModal(true);
-          //alert(`Hey there! We've minted your NFT and sent it to your wallet. It may be blank right now. It can take a max of 10 min to show up on OpenSea. Here's the link: https://testnets.opensea.io/assets/${CONTRACT_ADDRESS}/${tokenId.toNumber()}`)
         });
         console.log("Setup event listener!")
       }else{
@@ -143,7 +127,7 @@ const App = () => {
             console.log("Mining...please wait.")
             await nftTxn.wait();
             setMintStatus('minted');
-            console.log(`Mined, see transaction: https://rinkeby.etherscan.io/tx/${nftTxn.hash}`);
+            console.log(`Mined, see transaction: https://goerli.etherscan.io/tx/${nftTxn.hash}`);
 
         } else {
           console.log("Ethereum object doesn't exist!");
@@ -190,8 +174,15 @@ const App = () => {
     )
   }
   useEffect(()=>{
-    checkIfWalletConnected();
-  },[])
+    if(!currentAccount){
+      checkIfWalletConnected();
+    }else{
+      // Setup listener! This is for the case where a user comes to our site
+      // and connected their wallet for the first time.
+      setupEventListener();
+    }
+    
+  },[currentAccount])
   return (
     <div className="App">
        {
@@ -205,7 +196,7 @@ const App = () => {
           </p>
           <div className="previewBlock">
               <img src={previewImage} alt="preview" />
-              <a href="https://testnets.opensea.io/collection/squarenft-cpbtafc8op" className="cta-button opensea-button link-btn" target="_blank" rel="noreferrer">🌊 View Collection on OpenSea</a>
+              <a href="https://testnets.opensea.io/collection/heronft-oqntqqavru" className="cta-button opensea-button link-btn" target="_blank" rel="noreferrer">🌊 View Collection on OpenSea</a>
           </div>
           {
             currentAccount === ''?(
